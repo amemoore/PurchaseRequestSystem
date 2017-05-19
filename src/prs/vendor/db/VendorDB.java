@@ -1,4 +1,4 @@
-package vendor.db;
+package prs.vendor.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

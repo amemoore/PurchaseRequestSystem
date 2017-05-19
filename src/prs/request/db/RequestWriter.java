@@ -1,4 +1,4 @@
-package request.db;
+package prs.request.db;
 
 public interface RequestWriter {
 

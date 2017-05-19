@@ -1,4 +1,4 @@
-package vendor.db;
+package prs.vendor.db;
 
 public interface VendorWriter {
 

@@ -1,4 +1,4 @@
-package vendor.db;
+package prs.vendor.db;
 
 import java.util.ArrayList;
 import prs.business.Vendor;

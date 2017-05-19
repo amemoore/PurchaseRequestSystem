@@ -19,7 +19,7 @@ public class Product {
 		photoPath = pP;
 	}
 
-	public int getpID() {
+	public int getProductID() {
 		return productID;
 	}
 
@@ -73,5 +73,8 @@ public class Product {
 
 	public void setPhotoPath(String photoPath) {
 		this.photoPath = photoPath;
+	}
+	public String toString(){
+		return name + " " + unit + " " + price;
 	}
 }

@@ -1,5 +1,5 @@
 
-package vendor.db;
+package prs.vendor.db;
 
 public interface VendorDAO extends VendorReader,  VendorWriter{
 

@@ -1,17 +1,21 @@
 package prs.console;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
-import lineitem.db.LineItemDAO;
-import product.db.ProductDAO;
+
+import prs.business.LineItem;
 import prs.business.Product;
+import prs.business.Request;
 import prs.business.User;
 import prs.business.Vendor;
 import prs.db.DAOFactory;
+import prs.lineitem.db.LineItemDAO;
+import prs.product.db.ProductDAO;
+import prs.request.db.RequestDAO;
+import prs.user.db.UserDAO;
 import prs.util.Validator;
-import request.db.RequestDAO;
-import user.db.UserDAO;
-import vendor.db.VendorDAO;
+import prs.vendor.db.VendorDAO;
 
 public class PRSMainApp {
 	
@@ -24,7 +28,12 @@ public class PRSMainApp {
 	private static ArrayList<Vendor> vendors;
 	private static ArrayList<Product> products;
 	private static ArrayList<User> users;
+	private static ArrayList<Request> requests;
+	private static ArrayList<LineItem> lineitems;
 	private static Vendor v;
+	private static Product p;
+	private static LineItem li;
+	private static User u;
 	
 		public static void main(String[] args) {
 			int menuOption;
@@ -48,17 +57,18 @@ public class PRSMainApp {
 						//Welcome page
 						break;
 					case 3:
-						//new purchase request
+						newPurchaseRequest();
+						getLineItemsForRequest();
 						break;
 					case 4:
 						//Purchase Request status
 						break;
 					case 5:
-						listVendors();
+						listAllVendors();
 						getVendorsByNameOrState();
 						break;
 					case 6:
-						listProducts();
+						listAllProducts();
 						//listTopProducts();
 				}
 				choice = Validator.getString(sc, "Continue? (y/n)");
@@ -82,16 +92,13 @@ public class PRSMainApp {
 					int choice = Validator.getInt(sc, "Login (1) or Register (2)", 0, 3);
 					if (choice==1){
 						inputtedUsername = Validator.getString(sc, "Enter username:  ");
-						users = usersDAO.getUser(inputtedUsername);
-							if (users!=null) {
-								for (User u : users){
-									System.out.println("Welcome " + u.getUserName());
-								}
-								isValid = true;
+						u = usersDAO.getUser(inputtedUsername);
+							if (u.getUserName()!=null) {
+								System.out.println("Welcome " + u.getUserName());
+								isValid = true;	
 							}
-							else {
+							else 
 								System.out.println("Invalid username.");
-							}
 					}
 					else if (choice==2){
 						registerUser();
@@ -107,35 +114,66 @@ public class PRSMainApp {
 			String lastName = Validator.getString(sc, "Enter last name:  ");
 			String phone = Validator.getString(sc, "Enter phone:  ");
 			String email = Validator.getString(sc, "Enter email:  ");
-			Boolean manager = managerYesNo();
+			Boolean manager = getYesNo(sc, "Are you a manager? (y/n):  " );
 			User u = new User(userName, password, firstName, lastName, phone, email, manager);
 			usersDAO.addUser(u);
 		}
-		///Change this to a generic boolean method to re-use	
-		public static boolean managerYesNo(){
-			boolean manager = false;
-			String choice = Validator.getString(sc, "Are you a manager? (y/n):  ");
+		
+		public static boolean getYesNo(Scanner sc, String prompt){
+			boolean yesNo = false;
+			String choice = Validator.getString(sc, prompt);
 				if (choice.equalsIgnoreCase("y"))
-					manager = true;
-				return manager;
+					yesNo = true;
+				return yesNo;
 		}
-//		public static void newPurchaseRequest(){
-//			String description = Validator.getString(sc, "Enter a short description:  ");
-//			String justification = Validator.getString(sc, "Enter a justification for the purchase:  ");
-//			String dateNeeded = Validator.getString(sc, "Enter the date needed:  ");
-//			String userName = Validator.getString(sc, "Enter userName:  ");
-//			String deliveryMode = Validator.getString(sc, "Enter mode of delivery (pickup or mail):  ");
-//			//boolean docAttached = Validator.getString(sc, "Supporting documents? (yes/no):  ");
-//			Boolean manager = managerYesNo();
-//			String status = "new";
-//			double total = Validator.getDouble(sc, "Enter the  price:  ");
-//			
-//			User u = new User(userName, password, firstName, lastName, phone, email, manager);
-//			usersDAO.addUser(u);
-//		}
 		
+	//Method result is request r - Hold request until can complete entire transaction
+		public static void newPurchaseRequest(){
+			String description = Validator.getLine(sc, "Enter a short description:  ");
+			String justification = Validator.getLine(sc, "Enter a justification for the purchase:  ");
+			String dateNeeded = Validator.getString(sc, "Enter the date needed (yyyy-mm-dd):  ");
+			String userName = Validator.getString(sc, "Enter userName:  ");
+			String deliveryMode = Validator.getString(sc, "Enter mode of delivery (pickup or mail):  ");
+			Boolean docAttached = getYesNo(sc, "Supporting documents? (yes/no):  ");
+			String status = "new";
+			double total = Validator.getDouble(sc, "Enter the  price:  ");
+			//Extract userId in order to make the Request object r.
+			User u = usersDAO.getUser(userName);
+			int userID = u.getuID();
+			Request r = new Request(description, justification, dateNeeded, userID, deliveryMode, 
+				docAttached, status, total);
+			//System.out.println(r);
+		}	
+			
+	//Method to list Vendors and products and get products for request using a while loop
+		public static void getLineItemsForRequest(){
+			lineitems = new ArrayList<>();
+			listAllVendors();
+			String pickVendor = Validator.getLine(sc, "Please pick a vendor from the above list:  ");
+			v = vendorsDAO.getVendorByName(pickVendor);
+			System.out.println(v.getName() + " has the following products available: ");
+			products = productsDAO.getProductsForVendor(v.getvId());
+			System.out.println("Price\tName\t\tUnit");
+			String choice = "y";
+			while (choice.equalsIgnoreCase("y")){
+				for (Product p: products){
+					System.out.println(p.getPrice() +"\t"+ p.getName() +"\t"+ p.getUnit() );
+				}
+				String pickProduct = Validator.getLine(sc, "Please enter the product name for purchase request: ");
+				int pickQuantity = Validator.getInt(sc, "Please enter the quantity: ");
+				p = productsDAO.getProduct(pickProduct);
+				System.out.println(p);
+				int pi = p.getProductID();
+				li = new LineItem(pi, pickQuantity);
+				lineitems.add(li);
+				System.out.println(li);
+				choice = Validator.getString(sc, "Continue? (y/n):  ");
+			}
+			System.out.println(lineitems);
+			
+		}
 		
-		public static void listVendors(){
+		public static void listAllVendors(){
 			vendors = vendorsDAO.getAllVendors();
 			System.out.println("Name\t\t\tAddress\\City\\State\\Zip\t\t\tPhone\t\t\tEmail\t");
 			for (Vendor v : vendors){
@@ -185,7 +223,7 @@ public class PRSMainApp {
 			}
 		}
 		
-		public static void listProducts(){
+		public static void listAllProducts(){
 			products = productsDAO.getAllProducts();
 			System.out.println("Vendor#\tPart#\tProduct\t\tPrice\tUnit\tPhoto Link");
 				for (Product p : products){
@@ -193,6 +231,7 @@ public class PRSMainApp {
 														   +"\t"+ p.getPrice() +"\t"+ p.getUnit() +"\t"+ p.getPhotoPath());
 				}
 		}
+		
 		//LIST TOP 5 PRODUCTS BASED ON ???Join tables?? Most requested? or cheapest?
 		public static void listTopProducts(){
 			

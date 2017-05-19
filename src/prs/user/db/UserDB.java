@@ -1,4 +1,4 @@
-package user.db;
+package prs.user.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,14 +8,15 @@ import java.util.ArrayList;
 
 import prs.business.User;
 import prs.business.Vendor;
+import prs.request.db.RequestDAO;
 import prs.util.DBUtil;
-import request.db.RequestDAO;
 
 public class UserDB implements RequestDAO, UserDAO {
 	ArrayList<User> users;
-
-	public ArrayList<User> getUser(String un){
-		users = new ArrayList<User>();
+	
+	public User getUser(String un){
+		//users = new ArrayList<User>();
+		User user = new User();
 		String sql = " SELECT * FROM users "
 					+ " where UserName = ? ";
 		try (Connection connection = DBUtil.getConnection();
@@ -31,14 +32,14 @@ public class UserDB implements RequestDAO, UserDAO {
 				String phone = rs.getString(6);
 				String email = rs.getString(7);
 				boolean manager = rs.getBoolean(8);
-                User u = new User(uId, userName, password, firstName, lastName, phone, email, manager);
-                users.add(u);
+                user = new User(uId, userName, password, firstName, lastName, phone, email, manager);
+                //users.add(u);
         	}
         } 
 		catch (SQLException e) {
             System.out.println(e);
         }
-		return users;
+		return user;
 	}
 	
 	//add user registering info to the db

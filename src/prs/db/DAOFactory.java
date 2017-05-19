@@ -1,15 +1,15 @@
 package prs.db;
 
-import lineitem.db.LineItemDAO;
-import lineitem.db.LineItemDB;
-import product.db.ProductDAO;
-import product.db.ProductDB;
-import request.db.RequestDAO;
-import request.db.RequestDB;
-import user.db.UserDAO;
-import user.db.UserDB;
-import vendor.db.VendorDAO;
-import vendor.db.VendorDB;
+import prs.lineitem.db.LineItemDAO;
+import prs.lineitem.db.LineItemDB;
+import prs.product.db.ProductDAO;
+import prs.product.db.ProductDB;
+import prs.request.db.RequestDAO;
+import prs.request.db.RequestDB;
+import prs.user.db.UserDAO;
+import prs.user.db.UserDB;
+import prs.vendor.db.VendorDAO;
+import prs.vendor.db.VendorDB;
 
 public class DAOFactory {
 		public static LineItemDAO getLineItemDAO(){

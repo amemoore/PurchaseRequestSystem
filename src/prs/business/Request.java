@@ -6,15 +6,15 @@ public class Request {
 
 	private String description;
 	private String justification;
-	private Date dateNeeded;
+	private String dateNeeded;
 	private int userID;
 	private String deliveryMode;
 	private boolean docAttached;
 	private String status;
 	private double total;
-	private Date submittedDate;
 	
-public Request (String d, String j, Date dtNd, int u, String dM, boolean dA, String s, double t, Date sD){
+	
+public Request (String d, String j, String dtNd, int u, String dM, boolean dA, String s, double t){
 	description = d;
 	justification = j;
 	dateNeeded = dtNd;
@@ -23,7 +23,7 @@ public Request (String d, String j, Date dtNd, int u, String dM, boolean dA, Str
 	docAttached = dA;
 	status = s;
 	total = t;
-	submittedDate = sD;
+	
 }
 
 public String getDescription() {
@@ -42,11 +42,11 @@ public void setJustification(String justification) {
 	this.justification = justification;
 }
 
-public Date getDateNeeded() {
+public String getDateNeeded() {
 	return dateNeeded;
 }
 
-public void setDateNeeded(Date dateNeeded) {
+public void setDateNeeded(String dateNeeded) {
 	this.dateNeeded = dateNeeded;
 }
 
@@ -89,13 +89,10 @@ public double getTotal() {
 public void setTotal(double total) {
 	this.total = total;
 }
-
-public Date getSubmittedDate() {
-	return submittedDate;
+public String toString(){
+	return dateNeeded + " " + description;
+	
 }
 
-public void setSubmittedDate(Date submittedDate) {
-	this.submittedDate = submittedDate;
-}
 }
 

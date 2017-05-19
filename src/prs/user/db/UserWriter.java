@@ -1,4 +1,4 @@
-package user.db;
+package prs.user.db;
 
 import prs.business.User;
 

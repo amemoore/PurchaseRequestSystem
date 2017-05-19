@@ -1,4 +1,4 @@
-package product.db;
+package prs.product.db;
 
 public interface ProductWriter {
 

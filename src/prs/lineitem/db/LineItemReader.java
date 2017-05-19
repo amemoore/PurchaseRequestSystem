@@ -1,4 +1,4 @@
-package lineitem.db;
+package prs.lineitem.db;
 
 public interface LineItemReader {
 

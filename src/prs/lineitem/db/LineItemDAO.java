@@ -1,5 +1,5 @@
 
-package lineitem.db;
+package prs.lineitem.db;
 
 public interface LineItemDAO extends LineItemReader,  LineItemWriter{
 

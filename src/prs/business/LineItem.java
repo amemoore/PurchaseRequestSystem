@@ -11,6 +11,11 @@ public class LineItem {
 		productID = pID;
 		quantity = q;
 	}
+	
+	public LineItem(int pID, int q){
+		productID = pID;
+		quantity = q;
+	}
 
 	public int getRequestID() {
 		return requestID;
@@ -35,4 +40,9 @@ public class LineItem {
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
+	public String toString (){
+		return productID + " " + quantity;
+		
+	}
+	
 }
