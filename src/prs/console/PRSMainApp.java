@@ -30,10 +30,12 @@ public class PRSMainApp {
 	private static ArrayList<User> users;
 	private static ArrayList<Request> requests;
 	private static ArrayList<LineItem> lineitems;
+	private static ArrayList<LineItem> finallineitems;
 	private static Vendor v;
 	private static Product p;
 	private static LineItem li;
 	private static User u;
+	private static Request r;
 	
 		public static void main(String[] args) {
 			int menuOption;
@@ -57,8 +59,7 @@ public class PRSMainApp {
 						//Welcome page
 						break;
 					case 3:
-						newPurchaseRequest();
-						getLineItemsForRequest();
+						doTransaction();
 						break;
 					case 4:
 						//Purchase Request status
@@ -85,6 +86,7 @@ public class PRSMainApp {
 			System.out.println(menu);
 		}
 
+/////Login or Register User/////////////////////////////////////////////////////////////////////	
 		public static void loginRegister(){
 				String inputtedUsername = "";
 				boolean isValid = false;
@@ -127,33 +129,37 @@ public class PRSMainApp {
 				return yesNo;
 		}
 		
-	//Method result is request r - Hold request until can complete entire transaction
-		public static void newPurchaseRequest(){
+/////Creating purchase request - Holding all db interactions until end//////////////////////////
+		public static Request createRequest(){
 			String description = Validator.getLine(sc, "Enter a short description:  ");
 			String justification = Validator.getLine(sc, "Enter a justification for the purchase:  ");
 			String dateNeeded = Validator.getString(sc, "Enter the date needed (yyyy-mm-dd):  ");
+				java.sql.Date javaSqlDateNeeded = java.sql.Date.valueOf(dateNeeded);
 			String userName = Validator.getString(sc, "Enter userName:  ");
 			String deliveryMode = Validator.getString(sc, "Enter mode of delivery (pickup or mail):  ");
 			Boolean docAttached = getYesNo(sc, "Supporting documents? (yes/no):  ");
 			String status = "new";
 			double total = Validator.getDouble(sc, "Enter the  price:  ");
+			String dateSubmitted = Validator.getString(sc, "Enter the date of submission (yyyy-mm-dd):  ");
+				java.sql.Date javaSqlDateSubmitted = java.sql.Date.valueOf(dateSubmitted);
 			//Extract userId in order to make the Request object r.
 			User u = usersDAO.getUser(userName);
 			int userID = u.getuID();
-			Request r = new Request(description, justification, dateNeeded, userID, deliveryMode, 
-				docAttached, status, total);
-			//System.out.println(r);
+			Request r = new Request(description, justification,javaSqlDateNeeded, userID, deliveryMode, 
+				docAttached, status, total, javaSqlDateSubmitted);
+			return r;
 		}	
 			
-	//Method to list Vendors and products and get products for request using a while loop
-		public static void getLineItemsForRequest(){
+		//Creating a lineitem - User choosing from vendor and products.
+		public static ArrayList<LineItem> getLineItemsForRequest(){
 			lineitems = new ArrayList<>();
 			listAllVendors();
 			String pickVendor = Validator.getLine(sc, "Please pick a vendor from the above list:  ");
 			v = vendorsDAO.getVendorByName(pickVendor);
-			System.out.println(v.getName() + " has the following products available: ");
+			System.out.println(v.getName() + " has the following products available: \n");
 			products = productsDAO.getProductsForVendor(v.getvId());
 			System.out.println("Price\tName\t\tUnit");
+			System.out.println("+++++++++++++++++++++++++++++++++++++++++");
 			String choice = "y";
 			while (choice.equalsIgnoreCase("y")){
 				for (Product p: products){
@@ -169,10 +175,25 @@ public class PRSMainApp {
 				System.out.println(li);
 				choice = Validator.getString(sc, "Continue? (y/n):  ");
 			}
-			System.out.println(lineitems);
-			
+			return lineitems;
+		}
+		//Pulling together all purchase request methods into one transaction.
+		public static void doTransaction(){
+			LineItem finalLi; 
+				r = createRequest();
+				//System.out.println(r);
+				lineitems = getLineItemsForRequest();
+				//System.out.println(lineitems);
+				requestsDAO.addRequest(r);
+				int rId = requestsDAO.getRequestId();
+				
+				for (LineItem li:lineitems){
+					finalLi = new LineItem (rId, li.getProductID(), li.getQuantity());
+					lineitemsDAO.addLineItem(finalLi);
+				}
 		}
 		
+ /////Providing Vendor list and Vendor search./////////////////////////////////////////////////////		
 		public static void listAllVendors(){
 			vendors = vendorsDAO.getAllVendors();
 			System.out.println("Name\t\t\tAddress\\City\\State\\Zip\t\t\tPhone\t\t\tEmail\t");
@@ -223,6 +244,7 @@ public class PRSMainApp {
 			}
 		}
 		
+/////Providing complete product list (all vendors)./////////////////////////////////////////////////
 		public static void listAllProducts(){
 			products = productsDAO.getAllProducts();
 			System.out.println("Vendor#\tPart#\tProduct\t\tPrice\tUnit\tPhoto Link");

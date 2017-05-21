@@ -17,7 +17,7 @@ CREATE TABLE vendors (
   Preapproved	 BIT(1)		    NOT Null,
   constraint vcode unique (code)
   );
-  
+
 CREATE TABLE products (
   Id		     int			PRIMARY KEY  AUTO_INCREMENT,
   Name 			 VARCHAR(25)    NOT NULL,
@@ -49,10 +49,10 @@ CREATE TABLE requests (
   UserId       		int             NOT NULL,
   DeliveryMode		VARCHAR(25)     NOT NULL,
   DocAttached       BIT(1)     		NOT NULL,
-  Status		 	BIT(1)	        NOT NULL,
+  Status		 	varchar(10)	    NOT NULL,
   Total         	DOUBLE          NOT NULL,
-  SubmittedDate		TIMESTAMP,	        
-  foreign key (UserId) References users(id)
+  SubmittedDate		DATE	        NOT NULL,
+  foreign key (UserId) References users(Id)
   );
   
   CREATE TABLE lineitems (
@@ -60,8 +60,8 @@ CREATE TABLE requests (
   RequestId		int		NOT NULL,
   ProductId		INT		NOT NULL,
   Quantity		INT		NOT NULL,
-  foreign key (RequestId) References requests(id),
-  foreign key(ProductId) References products(id),
+  foreign key (RequestId) References requests(Id),
+  foreign key(ProductId) References products(Id),
   constraint req_pdt unique (RequestId, ProductId)
   );
   

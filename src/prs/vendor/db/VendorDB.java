@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import prs.business.Vendor;
 import prs.util.DBUtil;
 
-//RETRIEVING VENDOR INTO FROM DATABASE
 public class VendorDB implements VendorDAO {
 	ArrayList<Vendor>vendors = null;
 	
-	//COMPLETE LIST OF ALL VENDORS
+/////COMPLETE LIST OF ALL VENDORS////////////////////////////////////////////////////////////////
 	public ArrayList<Vendor> getAllVendors() { 
 		vendors = new ArrayList<>();
 		String sql = "SELECT * FROM vendors ";
@@ -39,7 +38,7 @@ public class VendorDB implements VendorDAO {
         }
         return vendors;
     }
-	//SEARCH VENDORS BY STATE
+/////SEARCH VENDORS BY STATE//////////////////////////////////////////////////////////////////////////////
 	public ArrayList<Vendor> getVendorByState(String st) { 
 		vendors = new ArrayList<>();
 		String sql = "SELECT * FROM vendors "
@@ -68,7 +67,7 @@ public class VendorDB implements VendorDAO {
         }
         return vendors;
 }
-	//SEARCH VENDORS BY NAME
+/////SEARCH VENDORS BY NAME//////////////////////////////////////////////////////////////////////////////
 	public Vendor getVendorByName(String nm) { 
 		Vendor v = null;
 		String sql = "SELECT * FROM vendors "

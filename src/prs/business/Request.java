@@ -1,20 +1,20 @@
 package prs.business;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class Request {
 
 	private String description;
 	private String justification;
-	private String dateNeeded;
+	private Date dateNeeded;
 	private int userID;
 	private String deliveryMode;
 	private boolean docAttached;
 	private String status;
 	private double total;
+	private Date dateSubmitted;
 	
-	
-public Request (String d, String j, String dtNd, int u, String dM, boolean dA, String s, double t){
+public Request (String d, String j, Date dtNd, int u, String dM, boolean dA, String s, double t, Date dS){
 	description = d;
 	justification = j;
 	dateNeeded = dtNd;
@@ -23,7 +23,15 @@ public Request (String d, String j, String dtNd, int u, String dM, boolean dA, S
 	docAttached = dA;
 	status = s;
 	total = t;
-	
+	dateSubmitted = dS;
+}
+
+public Date getDateSubmitted() {
+	return dateSubmitted;
+}
+
+public void setDateSubmitted(Date dateSubmitted) {
+	this.dateSubmitted = dateSubmitted;
 }
 
 public String getDescription() {
@@ -42,11 +50,11 @@ public void setJustification(String justification) {
 	this.justification = justification;
 }
 
-public String getDateNeeded() {
+public Date getDateNeeded() {
 	return dateNeeded;
 }
 
-public void setDateNeeded(String dateNeeded) {
+public void setDateNeeded(Date dateNeeded) {
 	this.dateNeeded = dateNeeded;
 }
 
