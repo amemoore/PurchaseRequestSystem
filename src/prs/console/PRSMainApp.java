@@ -1,9 +1,7 @@
 package prs.console;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Scanner;
-
 import prs.business.LineItem;
 import prs.business.Product;
 import prs.business.Request;
@@ -27,15 +25,13 @@ public class PRSMainApp {
 	private static Scanner sc;
 	private static ArrayList<Vendor> vendors;
 	private static ArrayList<Product> products;
-	private static ArrayList<User> users;
-	private static ArrayList<Request> requests;
 	private static ArrayList<LineItem> lineitems;
-	private static ArrayList<LineItem> finallineitems;
 	private static Vendor v;
 	private static Product p;
 	private static LineItem li;
 	private static User u;
 	private static Request r;
+	private static Boolean b;
 	
 		public static void main(String[] args) {
 			int menuOption;
@@ -50,7 +46,8 @@ public class PRSMainApp {
 			while (choice.equalsIgnoreCase("y")){
 				displayMenu();
 				menuOption = Validator.getInt(sc, "Please choose a menu option:  ");
-				
+//FOR SERVLET START SEPARATE EMPLOYEE AND MANAGER LOGINS - THE MANAGER APPROVE REQUEST METHOD INCORPORATES
+// THE CHECKREQUEST METHOD.
 				switch (menuOption){
 					case 1:
 						loginRegister();
@@ -62,7 +59,7 @@ public class PRSMainApp {
 						doTransaction();
 						break;
 					case 4:
-						//Purchase Request status
+						checkRequest();
 						break;
 					case 5:
 						listAllVendors();
@@ -70,23 +67,28 @@ public class PRSMainApp {
 						break;
 					case 6:
 						listAllProducts();
-						//listTopProducts();
+						listPreapprovedVendors();
+						break;
+					case 7:
+						approveRequest();
 				}
-				choice = Validator.getString(sc, "Continue? (y/n)");
+				choice = Validator.getString(sc, "Continue application? (y/n)");
+				if (choice.equalsIgnoreCase("n"))
+					System.out.println("Good-Bye");
 			}
 	}
 		public static void displayMenu(){
-			String menu = "1 - Login/Register\n"
+			String menu = "1 - Login or Register\n"
 						+ "2 - Welcome Page\n"
-						+ "3 - New Purchase Request\n"
+						+ "3 - Create New Purchase Request\n"
 						+ "4 - Status of Purchase Requests\n"
-						+ "5 - Vendors\n"
-						+ "6 - Products\n"
+						+ "5 - Lists of Vendors\n"
+						+ "6 - Lists of Products\n"
 						+ "7 - Manager Approval\n";
 			System.out.println(menu);
 		}
 
-/////Login or Register User/////////////////////////////////////////////////////////////////////	
+//Login or Register Choice	
 		public static void loginRegister(){
 				String inputtedUsername = "";
 				boolean isValid = false;
@@ -108,7 +110,8 @@ public class PRSMainApp {
 					}
 				}
 		}		
-		
+	
+//Register User
 		public static void registerUser(){
 			String userName = Validator.getString(sc, "Enter user name:  ");
 			String password = Validator.getString(sc, "Enter password:  ");
@@ -116,20 +119,12 @@ public class PRSMainApp {
 			String lastName = Validator.getString(sc, "Enter last name:  ");
 			String phone = Validator.getString(sc, "Enter phone:  ");
 			String email = Validator.getString(sc, "Enter email:  ");
-			Boolean manager = getYesNo(sc, "Are you a manager? (y/n):  " );
+			Boolean manager = Validator.getBoolean(sc, "Are you a manager? (y/n):  ", b );
 			User u = new User(userName, password, firstName, lastName, phone, email, manager);
 			usersDAO.addUser(u);
 		}
-		
-		public static boolean getYesNo(Scanner sc, String prompt){
-			boolean yesNo = false;
-			String choice = Validator.getString(sc, prompt);
-				if (choice.equalsIgnoreCase("y"))
-					yesNo = true;
-				return yesNo;
-		}
-		
-/////Creating purchase request - Holding all db interactions until end//////////////////////////
+
+//Creating Purchase Request
 		public static Request createRequest(){
 			String description = Validator.getLine(sc, "Enter a short description:  ");
 			String justification = Validator.getLine(sc, "Enter a justification for the purchase:  ");
@@ -137,25 +132,25 @@ public class PRSMainApp {
 				java.sql.Date javaSqlDateNeeded = java.sql.Date.valueOf(dateNeeded);
 			String userName = Validator.getString(sc, "Enter userName:  ");
 			String deliveryMode = Validator.getString(sc, "Enter mode of delivery (pickup or mail):  ");
-			Boolean docAttached = getYesNo(sc, "Supporting documents? (yes/no):  ");
+			boolean docAttached = Validator.getBoolean(sc, "Supporting documents? (yes/no):  ", b);
 			String status = "new";
-			double total = Validator.getDouble(sc, "Enter the  price:  ");
-			String dateSubmitted = Validator.getString(sc, "Enter the date of submission (yyyy-mm-dd):  ");
+			double total = Validator.getDouble(sc, "Enter the  estimated price:  ");
+			String dateSubmitted = Validator.getString(sc, "Enter the date of submission, today's date (yyyy-mm-dd):  ");
 				java.sql.Date javaSqlDateSubmitted = java.sql.Date.valueOf(dateSubmitted);
-			//Extract userId in order to make the Request object r.
-			User u = usersDAO.getUser(userName);
-			int userID = u.getuID();
+			
+			User u = usersDAO.getUser(userName);	//Extract userId in order to make the Request object r
+			int userID = u.getuID();				//Request object has userId, not userName
 			Request r = new Request(description, justification,javaSqlDateNeeded, userID, deliveryMode, 
 				docAttached, status, total, javaSqlDateSubmitted);
 			return r;
 		}	
-			
-		//Creating a lineitem - User choosing from vendor and products.
+		
+//Creating a Lineitem - User Choosing From Vendor and Products
 		public static ArrayList<LineItem> getLineItemsForRequest(){
 			lineitems = new ArrayList<>();
 			listAllVendors();
-			String pickVendor = Validator.getLine(sc, "Please pick a vendor from the above list:  ");
-			v = vendorsDAO.getVendorByName(pickVendor);
+			int pickVendor = Validator.getInt(sc, "Pick a Vendor No. from the above list:  ");
+			v = vendorsDAO.getVendorByVendorId(pickVendor);
 			System.out.println(v.getName() + " has the following products available: \n");
 			products = productsDAO.getProductsForVendor(v.getvId());
 			System.out.println("Price\tName\t\tUnit");
@@ -163,90 +158,128 @@ public class PRSMainApp {
 			String choice = "y";
 			while (choice.equalsIgnoreCase("y")){
 				for (Product p: products){
-					System.out.println(p.getPrice() +"\t"+ p.getName() +"\t"+ p.getUnit() );
+					System.out.println(p.getProductID() +"\t"+ p.getPrice() +"\t"+ p.getName() +"\t"+ p.getUnit() );
 				}
-				String pickProduct = Validator.getLine(sc, "Please enter the product name for purchase request: ");
-				int pickQuantity = Validator.getInt(sc, "Please enter the quantity: ");
-				p = productsDAO.getProduct(pickProduct);
+				int pickProduct = Validator.getInt(sc, "Please enter the product by Product No.: ");
+				int pickQuantity = Validator.getInt(sc, "Please enter the quantity: ", 0, 20);
+				p = productsDAO.getProductByProductNo(pickProduct);
 				System.out.println(p);
 				int pi = p.getProductID();
 				li = new LineItem(pi, pickQuantity);
 				lineitems.add(li);
-				System.out.println(li);
-				choice = Validator.getString(sc, "Continue? (y/n):  ");
+				choice = Validator.getString(sc, "Continue adding products? (y/n):  ");
 			}
 			return lineitems;
 		}
-		//Pulling together all purchase request methods into one transaction.
+//Pulling Together All Purchase Request Methods Into One Transaction
 		public static void doTransaction(){
 			LineItem finalLi; 
-				r = createRequest();
-				//System.out.println(r);
-				lineitems = getLineItemsForRequest();
-				//System.out.println(lineitems);
-				requestsDAO.addRequest(r);
-				int rId = requestsDAO.getRequestId();
+			lineitems = getLineItemsForRequest();
+			r = createRequest();
+			requestsDAO.addRequest(r);
+			int rId = requestsDAO.getRequestId();
+			System.out.println(rId);
 				
-				for (LineItem li:lineitems){
-					finalLi = new LineItem (rId, li.getProductID(), li.getQuantity());
-					lineitemsDAO.addLineItem(finalLi);
+			for (LineItem li:lineitems){
+				finalLi = new LineItem (rId, li.getProductID(), li.getQuantity());
+				System.out.println(finalLi);
+				lineitemsDAO.addLineItem(finalLi);
 				}
+			if (r.getTotal() < 50.0){
+				requestsDAO.approveRequestUnderFifty(rId);
+				System.out.println("Request has been created and approved.");
+				}
+			else if (r.getTotal() > 49.99){
+				System.out.println("Request has not been approved.  Please wait for manager approval.");
+			}
+		}
+
+//Employee - Check Status of Purchase Request
+		public static void checkRequest(){
+			ArrayList<String> requestStatus = new ArrayList<>();
+			requestStatus = requestsDAO.checkRequest();
+			System.out.println("Employee Name\tProduct Name\t\tPrice\t\tQuantity\tDate Needed\tDate Submiteed\tStatus");
+			System.out.println("----------------------------------------------------------------------------------------");
+			for (int i=0; i<requestStatus.size(); i++){
+				System.out.print(requestStatus + "\t");
+			}
+			System.out.println();
 		}
 		
- /////Providing Vendor list and Vendor search./////////////////////////////////////////////////////		
-		public static void listAllVendors(){
-			vendors = vendorsDAO.getAllVendors();
-			System.out.println("Name\t\t\tAddress\\City\\State\\Zip\t\t\tPhone\t\t\tEmail\t");
-			for (Vendor v : vendors){
-					System.out.println(v.getName()+"\t"+ v.getAddress() +"\\"+ v.getCity()+"\\"+ v.getState() 
-													+"\\"+ v.getZip() +"\t"+ v.getPhone() +"\t"+ v.getEmail()+"\n");
+//Manager - Check Status of Purchase Request and Approval 
+		public static void approveRequest(){
+			int requestId = 0;
+			checkRequest();
+			requestId = Validator.getInt(sc, "Please enter the first Request No. from the above list for "
+					+ "approval (or enter 0 to exit):  ");
+			if (requestId!=0 && requestsDAO.approveRequest(requestId)==1){
+				System.out.println("Request No. " + requestId + " was updated.");
 			}
 		}
 		
+//Providing Complete Vendor List		
+		public static void listAllVendors(){
+			vendors = vendorsDAO.getAllVendors();
+			System.out.println("Vendor No.\\Name\t\tPhone\t\tEmail\tPre-approval");
+			System.out.println("---------------------------------------------------------------------");
+			for (Vendor v : vendors){
+					System.out.println(v);
+			}
+			System.out.println("---------------------------------------------------------------------");
+			System.out.println("Please Note:  It is preferable to pick a pre-approved vendor.\n");
+		}
+
+//Searching By Vendor Name Or Vendor State	
 		public static void getVendorsByNameOrState(){
 			String searchName = "";
 			String searchState = "";
 			String choice = "y";
 			
 			while (choice.equalsIgnoreCase("y")){
-				String userInput = Validator.getString(sc, "Would you like to search by name or state? (name/state/neither)");
+				String userInput = Validator.getString(sc, "Would you like to search by name or state? (name/state/no)");
 					
 					if (userInput.equalsIgnoreCase("name")){	
 							searchName = Validator.getLine(sc, "Enter the vendor name you would like to search for: ");
-							System.out.println("Code\tName\t\t\tPre-approval\tPhone\t\tEmail\t\t\tAddress\\City\\State\\Zip");
 							v = vendorsDAO.getVendorByName(searchName);
-								System.out.println(v.getCode() +"\t"+ v.getName() +"\t"+ v.isPreapproved()+"\t\t"+ v.getPhone() 
-													+"\t" + v.getEmail() +"\t" +  v.getAddress() +"\\"+
-													v.getCity() +"\\"+ v.getState() +"\\"+ v.getZip());
-								choice = Validator.getString(sc, "Continue? (y/n)");
-						}	
+							if (vendors.isEmpty())
+								System.out.println("There are no vendors available with that name.");
+							else{
+								System.out.println("Vendor No.\\Name\t\tPhone\t\tEmail\t\t\tPre-approval");
+								System.out.println("---------------------------------------------------------------------");
+										System.out.println(v);
+								System.out.println("---------------------------------------------------------------------");
+								System.out.println("Please Note:  It is preferable to pick a pre-approved vendor.\n");
+							}
+							choice = Validator.getString(sc, "Another search? (y/n)");	
+					}
 					else if (userInput.equalsIgnoreCase("state")){
 							searchState = Validator.getString(sc, "Enter the state you would like to search for: ");
-							
 							vendors = vendorsDAO.getVendorByState(searchState);
 							if (vendors.isEmpty())
 								System.out.println("There are no vendors available in that state.");
-							else if (userInput.equalsIgnoreCase("neither")){
-								choice = "n";
-								break;
-							}
-							else{
-								System.out.println("Code\tName\t\t\tPre-approval\tPhone\t\tEmail\t\t\tAddress\\City\\State\\Zip");
+							
+							else {
+								System.out.println("Vendor No.\\Name\t\tPhone\t\tEmail\t\t\tPre-approval");
+								System.out.println("---------------------------------------------------------------------");
 									for (Vendor v: vendors){
-										System.out.println(v.getCode() +"\t"+ v.getName() +"\t"+ v.isPreapproved()+"\t\ts"+ v.getPhone() 
-															+"\t" + v.getEmail() +"\t" +  v.getAddress() +"\\"+
-															v.getCity() +"\\"+ v.getState() +"\\"+ v.getZip());
+										System.out.println(v);
 									}
-									choice = Validator.getString(sc, "Continue? (y/n)");		
+								System.out.println("---------------------------------------------------------------------");
+								System.out.println("Please Note:  It is preferable to pick a pre-approved vendor.\n");
 							}
+							choice = Validator.getString(sc, "Another search? (y/n)");	
 					}
-					
+					else if (userInput.equalsIgnoreCase("no")){
+						choice = "n";
+						break;
+					}
 			}
 		}
 		
-/////Providing complete product list (all vendors)./////////////////////////////////////////////////
+//Providing Complete Product List (For All Vendors)
 		public static void listAllProducts(){
 			products = productsDAO.getAllProducts();
+			System.out.println("COMPLETE PRODUCT LIST");
 			System.out.println("Vendor#\tPart#\tProduct\t\tPrice\tUnit\tPhoto Link");
 				for (Product p : products){
 						System.out.println(p.getVendorID() +"\t"+ p.getPartNumber() +" \t"+ p.getName() 
@@ -254,9 +287,14 @@ public class PRSMainApp {
 				}
 		}
 		
-		//LIST TOP 5 PRODUCTS BASED ON ???Join tables?? Most requested? or cheapest?
-		public static void listTopProducts(){
-			
+//List Pre-approved Vendors
+		public static void listPreapprovedVendors(){
+			vendors = vendorsDAO.listPreapprovedVendors();
+			System.out.println("Pre-approved Vendors");
+			System.out.println("---------------------");
+			for (Vendor v : vendors){
+					System.out.println(v.getName());
+			}
+			System.out.println("----------------------");
 		}
-		
 }

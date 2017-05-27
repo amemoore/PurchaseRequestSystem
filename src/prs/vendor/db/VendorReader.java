@@ -8,4 +8,6 @@ public interface VendorReader {
 	public ArrayList<Vendor> getAllVendors();
 	public Vendor getVendorByName(String nm);
 	public ArrayList<Vendor> getVendorByState(String st);
+	public Vendor getVendorByVendorId(int nm);
+	public ArrayList<Vendor> listPreapprovedVendors();
 }

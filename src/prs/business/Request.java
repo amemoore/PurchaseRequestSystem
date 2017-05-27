@@ -25,6 +25,9 @@ public Request (String d, String j, Date dtNd, int u, String dM, boolean dA, Str
 	total = t;
 	dateSubmitted = dS;
 }
+public Request (String s){
+	status = s;
+}
 
 public Date getDateSubmitted() {
 	return dateSubmitted;

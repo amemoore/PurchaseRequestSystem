@@ -13,7 +13,7 @@ public class ProductDB implements ProductDAO {
 	ArrayList<Product>products = null;
 	Product p = null;
 
-//Get All Products.
+//GET ALL PRODUCTS
 	public ArrayList<Product> getAllProducts() { 
 		products = new ArrayList<>();
 		String sql = " SELECT * from products ";
@@ -37,7 +37,7 @@ public class ProductDB implements ProductDAO {
         }
         return products;
     }
-//Get products for a specific vendor by ID.
+//GET PRODUCTS BY VENDOR ID
 	public ArrayList<Product> getProductsForVendor(int ven) { 
 		products = new ArrayList<>();
 		String sql = " SELECT * from products " +
@@ -64,7 +64,7 @@ public class ProductDB implements ProductDAO {
 	    return products;
 	}
 
-//Get products for a specific Vendor Name.
+//GET PRODUCTS BY VENDOR NAME
 	public Product getProduct(String nm) { 
 		String sql = " SELECT * from products " +
 						" WHERE Name = ?";
@@ -88,5 +88,30 @@ public class ProductDB implements ProductDAO {
 	    }
 	    return p;
 	}
+	
+//GET PRODUCTS BY PRODUCT ID
+		public Product getProductByProductNo(int i) { 
+			String sql = " SELECT * from products " +
+							" WHERE Id = ? ";
+			try (  Connection connection = DBUtil.getConnection();
+					PreparedStatement ps = connection.prepareStatement(sql)){
+					ps.setInt(1, i); 
+					ResultSet rs = ps.executeQuery();
+		    	while (rs.next()){
+		    		int productId = rs.getInt(1);
+		            String name = rs.getString(2);
+					String partNumber = rs.getString(3);
+					double price = rs.getDouble(4);
+					String unit = rs.getString(5);
+					int vendorID = rs.getInt(6);
+					String photoPath = rs.getString(7);
+		            p = new Product(productId, name, partNumber, price, unit, vendorID, photoPath);
+		    	}
+		    } 
+			catch (SQLException e) {
+		        System.out.println(e);
+		    }
+		    return p;
+		}
 }
 

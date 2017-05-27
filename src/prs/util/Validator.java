@@ -12,6 +12,30 @@ public class Validator
         return s;
     }
     
+    public static String getStringTwoChar(Scanner sc, String prompt)
+    {
+        StringBuilder chars;
+        String s = "";
+        boolean isValid = false;
+        while (isValid==false){
+	    	System.out.print(prompt);
+	    	if (sc.hasNextInt()){
+	    		System.out.println("Invalid input - enter state by 2 letter code.");
+	        	break;
+	    	}
+	        else {
+	        	s = sc.next();  // read user entry
+		        chars = new StringBuilder(s);	
+		        if (chars.length()==2)
+		        	isValid=true;
+		        else if (chars.length()!=2)
+			        System.out.println("Invalid input - enter state by 2 letter code.");
+	        }
+        }  
+	        sc.nextLine();  // discard any other data entered on the line
+        return s;
+    }
+    
     public static String getLine(Scanner sc, String prompt)
     {
         System.out.print(prompt);
@@ -101,11 +125,13 @@ public class Validator
         return d;
     }
 
-    public static void getBoolean(Scanner sc, String prompt, Boolean b){
+    public static boolean getBoolean(Scanner sc, String prompt, Boolean b){
     	String choice = getString(sc,prompt);
 		if (choice.equalsIgnoreCase("y"))
 			b = true;
 		else if (choice.equalsIgnoreCase("n"))
 			b = false;
+		
+		return b;
     }
 }

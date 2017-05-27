@@ -18,6 +18,9 @@ public class Product {
 		vendorID = vID;
 		photoPath = pP;
 	}
+	public Product(String n){
+		name = n;
+	}
 
 	public int getProductID() {
 		return productID;

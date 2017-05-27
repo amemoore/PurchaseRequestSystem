@@ -11,4 +11,6 @@ public interface ProductReader {
 	public ArrayList<Product> getProductsForVendor(int ven);
 	
 	public Product getProduct(String nm);
+	
+	//public ArrayList<Product> getTopProducts();
 }
